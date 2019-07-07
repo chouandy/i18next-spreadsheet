@@ -50,9 +50,9 @@ class Sheet {
     // Set locale map
     for (let row of this.rows) {
       let key = row[0];
-      for (let i = 1; i < row.length; i++) {
+      for (let i = 1; i < this.headers.length; i++) {
         let locale = this.headers[i];
-        _.set(this.localesMap[locale], key, row[i]);
+        _.set(this.localesMap[locale], key, row[i] || '');
       }
     }
   }
