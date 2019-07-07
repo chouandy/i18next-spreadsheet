@@ -10,7 +10,7 @@ const sheets = google.sheets('v4');
 Promise.promisifyAll(sheets.spreadsheets);
 
 class Sheet {
-  constructor({ sheetInfo, auth, spreadsheetId, localesPath }) {
+  constructor({ sheetInfo, auth, spreadsheetId, localesPath, newline }) {
     this.sheetInfo = sheetInfo;
     this.name = sheetInfo.properties.title;
     this.columnName = convertNumberToColumnName(
@@ -20,6 +20,7 @@ class Sheet {
     this.auth = auth;
     this.spreadsheetId = spreadsheetId;
     this.localesPath = localesPath;
+    this.newline = newline;
 
     this.headers = [];
     this.rows = [];
@@ -62,7 +63,9 @@ class Sheet {
       fs.mkdirSync(localePath, { recursive: true });
 
       let localeFile = `${localePath}/${this.name}.json`;
-      fs.writeFileSync(localeFile, JSON.stringify(content, null, 2));
+      content = JSON.stringify(content, null, 2);
+      if (this.newline) content = content + '\n';
+      fs.writeFileSync(localeFile, content);
     });
   }
 }

@@ -11,7 +11,8 @@ cmd
     '-s, --credentials <s>',
     'Service Account credentials JSON data or file path'
   )
-  .option('-p, --path <p>', 'Locale files path')
+  .option('-p, --locales-path <p>', 'Locale files path')
+  .option('-n, --newline', 'Locale files end with a newline')
   .parse(process.argv);
 
 if (cmd.args.length < 1) {

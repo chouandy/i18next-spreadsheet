@@ -9,10 +9,11 @@ const sheets = google.sheets('v4');
 Promise.promisifyAll(sheets.spreadsheets);
 
 class I18nextSpreadsheet {
-  constructor({ credentials, spreadsheetId, path }) {
+  constructor({ credentials, spreadsheetId, localesPath, newline }) {
     this.credentials = credentials;
     this.spreadsheetId = spreadsheetId;
-    this.localesPath = path;
+    this.localesPath = localesPath;
+    this.newline = newline;
     this.sheets = [];
   }
 
@@ -30,7 +31,7 @@ class I18nextSpreadsheet {
   }
 
   async getSheets() {
-    const { auth, spreadsheetId, localesPath } = this;
+    const { auth, spreadsheetId, localesPath, newline } = this;
 
     const resp = await sheets.spreadsheets.getAsync({
       auth,
@@ -39,7 +40,7 @@ class I18nextSpreadsheet {
 
     for (let sheetInfo of resp.data.sheets) {
       this.sheets.push(
-        new Sheet({ sheetInfo, auth, spreadsheetId, localesPath })
+        new Sheet({ sheetInfo, auth, spreadsheetId, localesPath, newline })
       );
     }
   }
