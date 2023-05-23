@@ -1,11 +1,15 @@
 const Promise = require('aigle');
 const path = require('path');
-const readline = require('readline');
+const http = require('http');
 const fs = Promise.promisifyAll(require('fs'));
 const { google } = require('googleapis');
+const destroyer = require('server-destroy');
+const open = require('open');
+const url = require('url');
 
 const TOKEN_FILENAME = 'token.json';
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+const REDIRECT_URI = `http://localhost:${process.env.PORT ? process.env.PORT : '8080'}`;
 
 class GoogleAuth {
   constructor(credentialsPath) {
@@ -14,29 +18,21 @@ class GoogleAuth {
   }
 
   async authorize() {
-    try {
-      // Get credentials
-      const content = await fs.readFileAsync(this.credentialsPath);
-      const credentials = JSON.parse(content);
+    // Get credentials
+    const content = await fs.readFileAsync(this.credentialsPath);
+    const credentials = JSON.parse(content);
 
-      // New oauth2 client
-      const { client_secret, client_id, redirect_uris } = credentials.installed;
-      this.oAuth2Client = new google.auth.OAuth2(
-        client_id,
-        client_secret,
-        redirect_uris[0]
-      );
+    // New oauth2 client
+    const { client_secret, client_id } = credentials.installed;
+    this.oAuth2Client = new google.auth.OAuth2(client_id, client_secret, REDIRECT_URI);
 
-      // Get token
-      const token = await this.getToken();
+    // Get token
+    const token = await this.getToken();
 
-      // Set token
-      this.oAuth2Client.setCredentials(token);
+    // Set token
+    this.oAuth2Client.setCredentials(token);
 
-      return this.oAuth2Client;
-    } catch (err) {
-      throw err;
-    }
+    return this.oAuth2Client;
   }
 
   async getToken() {
@@ -57,27 +53,29 @@ class GoogleAuth {
   }
 
   getNewToken() {
-    const authUrl = this.oAuth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: SCOPES,
-    });
-    console.log('Authorize this app by visiting this url:', authUrl);
-
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
+    const authUrl = this.oAuth2Client.generateAuthUrl({ access_type: 'offline', scope: SCOPES });
 
     return new Promise((resolve, reject) => {
-      rl.question('Enter the code from that page here: ', code => {
-        rl.close();
-        this.oAuth2Client.getToken(code, (err, token) => {
-          if (err) {
-            console.error('Error while trying to retrieve access token', err);
-            reject(err);
-          } else resolve(token);
+      const server = http
+        .createServer(async (req, res) => {
+          try {
+            const qs = new url.URL(req.url, REDIRECT_URI).searchParams;
+            const code = qs.get('code');
+            console.log(`Code is ${code}`);
+            res.end('Authentication successful! Please return to the console.');
+            server.destroy();
+
+            const { tokens } = await this.oAuth2Client.getToken(code);
+            resolve(tokens);
+          } catch (e) {
+            reject(e);
+          }
+        })
+        .listen(8080, () => {
+          open(authUrl, { wait: false }).then((cp) => cp.unref());
         });
-      });
+
+      destroyer(server);
     });
   }
 }

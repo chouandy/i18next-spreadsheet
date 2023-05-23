@@ -13,9 +13,7 @@ class Sheet {
   constructor({ sheetInfo, auth, spreadsheetId, localesPath, newline }) {
     this.sheetInfo = sheetInfo;
     this.name = sheetInfo.properties.title;
-    this.columnName = convertNumberToColumnName(
-      sheetInfo.properties.gridProperties.columnCount
-    );
+    this.columnName = convertNumberToColumnName(sheetInfo.properties.gridProperties.columnCount);
 
     this.auth = auth;
     this.spreadsheetId = spreadsheetId;
@@ -35,7 +33,6 @@ class Sheet {
       spreadsheetId,
       range: `${this.name}!A1:${this.columnName}`,
     });
-
     this.headers = resp.data.values[0];
     this.rows = resp.data.values.slice(1);
   }

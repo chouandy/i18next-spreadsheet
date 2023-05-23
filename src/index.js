@@ -32,33 +32,22 @@ class I18nextSpreadsheet {
 
   async getSheets() {
     const { auth, spreadsheetId, localesPath, newline } = this;
-
-    const resp = await sheets.spreadsheets.getAsync({
-      auth,
-      spreadsheetId,
-    });
-
+    const resp = await sheets.spreadsheets.getAsync({ auth, spreadsheetId });
     for (let sheetInfo of resp.data.sheets) {
-      this.sheets.push(
-        new Sheet({ sheetInfo, auth, spreadsheetId, localesPath, newline })
-      );
+      this.sheets.push(new Sheet({ sheetInfo, auth, spreadsheetId, localesPath, newline }));
     }
   }
 
   async getSheetsHeadersAndRows() {
-    await Promise.resolve(this.sheets).map(sheet => sheet.getHeadersAndRows());
+    await Promise.resolve(this.sheets).map((sheet) => sheet.getHeadersAndRows());
   }
 
   async convertSheetsRowsToLocalesMap() {
-    await Promise.resolve(this.sheets).map(sheet =>
-      sheet.convertRowsToLocalesMap()
-    );
+    await Promise.resolve(this.sheets).map((sheet) => sheet.convertRowsToLocalesMap());
   }
 
   async writeSheetsLocalesMapToFiles() {
-    await Promise.resolve(this.sheets).map(sheet =>
-      sheet.writeLocalesMapToFiles()
-    );
+    await Promise.resolve(this.sheets).map((sheet) => sheet.writeLocalesMapToFiles());
   }
 }
 
